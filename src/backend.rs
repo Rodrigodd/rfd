@@ -3,6 +3,15 @@ use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
 
+#[cfg(any(
+    target_os = "linux",
+    target_os = "freebsd",
+    target_os = "dragonfly",
+    target_os = "netbsd",
+    target_os = "openbsd"
+))]
+mod unix;
+
 #[cfg(all(
     any(
         target_os = "linux",
