@@ -64,6 +64,7 @@ impl FileHandle {
     /// On native platforms it wraps path.
     ///
     /// On `WASM32` it wraps JS `File` object.
+    /// On `Android` it wraps a `Vec<u8>`.
     pub fn wrap(path_buf: PathBuf) -> Self {
         Self(path_buf)
     }
@@ -79,7 +80,7 @@ impl FileHandle {
 
     /// Gets path to a file.
     ///
-    /// Does not exist in `WASM32`
+    /// Does not exist in `WASM32` or `Android`.
     pub fn path(&self) -> &Path {
         &self.0
     }
@@ -100,6 +101,7 @@ impl FileHandle {
     /// On native platforms returns path.
     ///
     /// On `WASM32` it returns JS `File` object.
+    /// On `Android` does not exists.
     ///
     /// #### Behind a `file-handle-inner` feature flag
     #[cfg(feature = "file-handle-inner")]

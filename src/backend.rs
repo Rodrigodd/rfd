@@ -3,6 +3,8 @@ use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
 
+#[cfg(target_os = "android")]
+pub(crate) mod android;
 #[cfg(all(
     any(
         target_os = "linux",

@@ -5,15 +5,18 @@
 //!
 //! It should allow a user to treat web browser files same way as native files
 
-#[cfg(not(target_arch = "wasm32"))]
-mod native;
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::FileHandle;
-
-#[cfg(target_arch = "wasm32")]
-mod web;
-#[cfg(target_arch = "wasm32")]
-pub use web::FileHandle;
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "wasm32")] {
+        mod web;
+        pub use web::FileHandle;
+    } else if #[cfg(target_os = "android")] {
+        mod android;
+        pub  use android::FileHandle;
+    } else  {
+        mod native;
+        pub use native::FileHandle;
+    }
+}
 
 #[cfg(test)]
 mod tests {

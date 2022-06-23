@@ -113,6 +113,9 @@
 
 mod backend;
 
+#[cfg(target_os = "android")]
+pub use backend::android::file_picker_result;
+
 mod file_handle;
 pub use file_handle::FileHandle;
 
