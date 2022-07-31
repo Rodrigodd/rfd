@@ -26,14 +26,9 @@ use std::task::{Context, Poll, Waker};
 
 struct Response {
     uri: String,
-    data: Vec<u8>,
 }
 impl Response {
-    fn from_jni(
-        env: jni::JNIEnv,
-        uri: jni::objects::JString,
-        buf: jni::objects::JByteBuffer,
-    ) -> Option<Self> {
+    fn from_jni(env: jni::JNIEnv, uri: jni::objects::JString) -> Option<Self> {
         let uri = env
             .get_string(uri)
             .ok()?
@@ -42,15 +37,7 @@ impl Response {
             .expect("android.net.Uri.toString should give a valid UTF-8, rigth?")
             .to_string();
 
-        let data = match env.get_direct_buffer_address(buf) {
-            Ok(x) => x.to_vec(),
-            Err(err) => {
-                log::error!("failed to get direct buffer: {err}");
-                return None;
-            }
-        };
-
-        Some(Self { uri, data })
+        Some(Self { uri })
     }
 }
 
@@ -112,7 +99,7 @@ impl Future for FilePickFuture {
             true => {
                 let response = self.result.lock().unwrap().take();
                 log::debug!("got uri {:?}", response.as_ref().map(|x| &x.uri));
-                Poll::Ready(response.map(|x| FileHandle::wrap(x.data)))
+                Poll::Ready(response.map(|x| FileHandle::wrap(x.uri)))
             }
         }
     }
@@ -127,7 +114,6 @@ pub extern "C" fn file_picker_result(
     class: jni::objects::JObject,
     callback_ptr: jni::sys::jlong,
     uri: jni::objects::JString,
-    data: jni::objects::JByteBuffer,
 ) {
     // SAFETY: this callback_ptr was passed Java from rust, and was created with
     // Box::<Callback>>::leak().
@@ -136,7 +122,7 @@ pub extern "C" fn file_picker_result(
         Box::from_raw(callback)
     };
 
-    let response = Response::from_jni(env, uri, data);
+    let response = Response::from_jni(env, uri);
 
     callback.receive_response(response);
 }
