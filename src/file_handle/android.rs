@@ -21,6 +21,14 @@ impl FileHandle {
         "Name".to_string()
     }
 
+    // TODO: this API doesn't make much sense, because this will return a android URI, not a PATH.
+    /// Gets path to a file.
+    ///
+    /// Does not exist in `WASM32`.
+    pub fn path(&self) -> &Path {
+        &Path::new(&self.uri)
+    }
+
     pub async fn read(&self) -> Vec<u8> {
         let android_context = ndk_context::android_context();
         let vm = std::sync::Arc::new(unsafe {

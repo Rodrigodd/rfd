@@ -53,12 +53,14 @@ impl Callback {
 }
 
 struct FilePickFuture {
+    folder: bool,
     result: Arc<Mutex<Option<Response>>>,
     called: bool,
 }
 impl FilePickFuture {
-    fn new() -> Self {
+    fn new(folder: bool) -> Self {
         Self {
+            folder,
             result: Arc::new(Mutex::new(None)),
             called: false,
         }
@@ -84,9 +86,15 @@ impl Future for FilePickFuture {
                         };
                         let callback = Box::leak(Box::new(callback));
 
+                        let method = if self.folder {
+                            "launchFolderPicker"
+                        } else {
+                            "launchFilePicker"
+                        };
+
                         env.call_method(
                             android_context.context() as jni::sys::jobject,
-                            "launchFilePicker",
+                            method,
                             "(J)V",
                             &[jni::objects::JValue::Long(callback as *const _ as i64)],
                         )
@@ -130,7 +138,7 @@ pub extern "C" fn file_picker_result(
 use crate::backend::AsyncFilePickerDialogImpl;
 impl AsyncFilePickerDialogImpl for FileDialog {
     fn pick_file_async(self) -> DialogFutureType<Option<FileHandle>> {
-        Box::pin(FilePickFuture::new())
+        Box::pin(FilePickFuture::new(false))
     }
 
     fn pick_files_async(self) -> DialogFutureType<Option<Vec<FileHandle>>> {
@@ -156,7 +164,7 @@ impl FolderPickerDialogImpl for FileDialog {
 use crate::backend::AsyncFolderPickerDialogImpl;
 impl AsyncFolderPickerDialogImpl for FileDialog {
     fn pick_folder_async(self) -> DialogFutureType<Option<FileHandle>> {
-        todo!()
+        Box::pin(FilePickFuture::new(true))
     }
 
     fn pick_folders_async(self) -> DialogFutureType<Option<Vec<FileHandle>>> {

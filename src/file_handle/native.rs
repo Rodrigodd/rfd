@@ -80,7 +80,7 @@ impl FileHandle {
 
     /// Gets path to a file.
     ///
-    /// Does not exist in `WASM32` or `Android`.
+    /// Does not exist in `WASM32`.
     pub fn path(&self) -> &Path {
         &self.0
     }
